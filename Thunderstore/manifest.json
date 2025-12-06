@@ -1,0 +1,10 @@
+﻿{
+	"name": "ImprovedSurvivorAI",
+	"version_number": "1.3.3",
+	"website_url": "",
+	"description": "Overhauls the behavior of AI-controlled Survivors to make them more competent. Goobo Jr. users rejoice!",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.2121",
+		"RiskofThunder-HookGenPatcher-1.2.9"
+	]
+}
