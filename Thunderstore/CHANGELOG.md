@@ -1,6 +1,14 @@
-## 1.3.3
+## 1.4.0
 
-- Oh my GOD Captain!!!
+- **General** - The GitHub's up.
+- **MUL-T**
+    - Fixed "Use Utility to ram close targets" not checking for LoS. It'll also ignore flying targets.
+    - Implemented special behavior for Double Rebar + Retool.
+    - Can now use Power Mode!
+- **CHEF**
+    - "Strafing while using primary" range increased. (30m -> 40m)
+    - Glaze is active for 0.8s so it doesn't immediately get cancelled into Sear.
+    - Can now use Yes, CHEF!
 
 ## 1.3.2
 

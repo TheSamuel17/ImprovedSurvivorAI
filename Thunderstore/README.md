@@ -22,13 +22,11 @@ CommandoMonsterMaster, HuntressMonsterMaster, Bandit2MonsterMaster, ToolbotMonst
 ## To-do:
 
 * **General**
-    * Set up the GitHub.
     * A way to take into account the number of stocks available for a skill. This will allow for optimal usage of skills like Engineer's Thermal Harpoons.
 * **Specific**
-    * Figure out how to input both Primary & Secondary skills as Power Mode MUL-T. Currently unused for the time being.
     * Make Artificer hover?
-    * Heretic's Ruin, in general.
-    * I do not know what the fuck did they do to my boy CHEF, but Roll places it in an infinite charging loop and Yes, CHEF! is straight up unable to override its skills. Is that why its vanilla behavior tree is so abysmal? I will unshackle you some other day.
+    * Heretic's Ruin.
+    * CHEF's Roll.
 * Among other things. Stay tuned...
 
 ## Credits

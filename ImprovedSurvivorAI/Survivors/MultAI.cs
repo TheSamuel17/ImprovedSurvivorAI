@@ -3,6 +3,7 @@ using RoR2.CharacterAI;
 using RoR2.Skills;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using System.Collections.Generic;
 
 namespace ImprovedSurvivorAI
 {
@@ -15,7 +16,9 @@ namespace ImprovedSurvivorAI
         public static ToolbotWeaponSkillDef sawSkill = Addressables.LoadAssetAsync<ToolbotWeaponSkillDef>("RoR2/Base/Toolbot/ToolbotBodyFireBuzzsaw.asset").WaitForCompletion();
         public static SkillDef retoolSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/Base/Toolbot/ToolbotBodySwap.asset").WaitForCompletion();
         public static SkillDef powerModeOnSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/Base/Toolbot/ToolbotDualWield.asset").WaitForCompletion();
-        public static SkillDef powerModeOffSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/Base/Toolbot/ToolbotCancelDualWield.asset").WaitForCompletion();
+
+        // Fields
+        public static List<CharacterMaster> powerModeUsers = new();
 
         public MultAI(GameObject masterObject)
         {
@@ -28,6 +31,13 @@ namespace ImprovedSurvivorAI
                 baseAI.aimVectorDampTime = .05f;
                 baseAI.aimVectorMaxSpeed = 720;
             }
+
+
+            // Misc
+            On.EntityStates.Toolbot.ToolbotDualWield.OnEnter += ToolbotDualWield_OnEnter;
+            On.EntityStates.Toolbot.ToolbotDualWield.OnExit += ToolbotDualWield_OnExit;
+            On.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += PowerModeInputs;
+            CharacterBody.onBodyStartGlobal += SpecialLoadoutBehavior;
 
 
             // Use secondary off cooldown
@@ -58,8 +68,8 @@ namespace ImprovedSurvivorAI
             utilityClose.moveTargetType = AISkillDriver.TargetType.CurrentEnemy;
             utilityClose.minDistance = 0f;
             utilityClose.maxDistance = 25f;
-            utilityClose.selectionRequiresTargetLoS = false;
-            utilityClose.activationRequiresTargetLoS = false;
+            utilityClose.selectionRequiresTargetLoS = true;
+            utilityClose.activationRequiresTargetLoS = true;
             utilityClose.activationRequiresAimConfirmation = false;
             utilityClose.movementType = AISkillDriver.MovementType.ChaseMoveTarget;
             utilityClose.aimType = AISkillDriver.AimType.AtCurrentEnemy;
@@ -68,30 +78,50 @@ namespace ImprovedSurvivorAI
             utilityClose.shouldSprint = true;
             utilityClose.shouldFireEquipment = false;
             utilityClose.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
-            utilityClose.selectionRequiresOnGround = true;
+            utilityClose.selectionRequiresTargetNonFlier = true;
             utilityClose.driverUpdateTimerOverride = .5f;
 
 
+            AISkillDriver powerModeOn = masterObject.AddComponent<AISkillDriver>();
+            powerModeOn.skillSlot = SkillSlot.Special;
+            powerModeOn.requiredSkill = powerModeOnSkill;
+            powerModeOn.requireSkillReady = true;
+            powerModeOn.requireEquipmentReady = false;
+            powerModeOn.moveTargetType = AISkillDriver.TargetType.CurrentEnemy;
+            powerModeOn.minDistance = 0f;
+            powerModeOn.maxDistance = 60f;
+            powerModeOn.selectionRequiresTargetLoS = true;
+            powerModeOn.activationRequiresTargetLoS = true;
+            powerModeOn.activationRequiresAimConfirmation = false;
+            //powerModeOn.movementType = AISkillDriver.MovementType.StrafeMovetarget;
+            powerModeOn.aimType = AISkillDriver.AimType.AtCurrentEnemy;
+            powerModeOn.ignoreNodeGraph = false;
+            powerModeOn.noRepeat = true;
+            powerModeOn.shouldSprint = false;
+            powerModeOn.shouldFireEquipment = false;
+            powerModeOn.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
+
+
             // Use utility off cooldown to move around
-            AISkillDriver utlityFar = masterObject.AddComponent<AISkillDriver>();
-            utlityFar.skillSlot = SkillSlot.Utility;
-            utlityFar.requireSkillReady = true;
-            utlityFar.requireEquipmentReady = false;
-            utlityFar.moveTargetType = AISkillDriver.TargetType.CurrentEnemy;
-            utlityFar.minDistance = 60f;
-            utlityFar.maxDistance = float.PositiveInfinity;
-            utlityFar.selectionRequiresTargetLoS = false;
-            utlityFar.activationRequiresTargetLoS = false;
-            utlityFar.activationRequiresAimConfirmation = false;
-            //utlityFar.movementType = AISkillDriver.MovementType.ChaseMoveTarget;
-            utlityFar.aimType = AISkillDriver.AimType.MoveDirection;
-            utlityFar.ignoreNodeGraph = false;
-            utlityFar.noRepeat = true;
-            utlityFar.shouldSprint = true;
-            utlityFar.shouldFireEquipment = false;
-            utlityFar.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
-            utlityFar.selectionRequiresOnGround = true;
-            utlityFar.driverUpdateTimerOverride = .5f;
+            AISkillDriver utilityFar = masterObject.AddComponent<AISkillDriver>();
+            utilityFar.skillSlot = SkillSlot.Utility;
+            utilityFar.requireSkillReady = true;
+            utilityFar.requireEquipmentReady = false;
+            utilityFar.moveTargetType = AISkillDriver.TargetType.CurrentEnemy;
+            utilityFar.minDistance = 60f;
+            utilityFar.maxDistance = float.PositiveInfinity;
+            utilityFar.selectionRequiresTargetLoS = false;
+            utilityFar.activationRequiresTargetLoS = false;
+            utilityFar.activationRequiresAimConfirmation = false;
+            //utilityFar.movementType = AISkillDriver.MovementType.ChaseMoveTarget;
+            utilityFar.aimType = AISkillDriver.AimType.MoveDirection;
+            utilityFar.ignoreNodeGraph = false;
+            utilityFar.noRepeat = true;
+            utilityFar.shouldSprint = true;
+            utilityFar.shouldFireEquipment = false;
+            utilityFar.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
+            utilityFar.selectionRequiresOnGround = true;
+            utilityFar.driverUpdateTimerOverride = .5f;
 
 
             // Nailgun while retreating (point-blank)
@@ -462,12 +492,165 @@ namespace ImprovedSurvivorAI
             retool.noRepeat = true;
             retool.shouldSprint = true;
             retool.shouldFireEquipment = false;
-            retool.buttonPressType = AISkillDriver.ButtonPressType.Hold;
-            retool.resetCurrentEnemyOnNextDriverSelection = true;
+            retool.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
+            retool.driverUpdateTimerOverride = .4f;
 
 
             // Overrides
-            utlityFar.nextHighPriorityOverride = retool;
+            utilityFar.nextHighPriorityOverride = retool;
+        }
+
+        // Register any MUL-T that currently has Power Mode active
+        private void ToolbotDualWield_OnEnter(On.EntityStates.Toolbot.ToolbotDualWield.orig_OnEnter orig, EntityStates.Toolbot.ToolbotDualWield self)
+        {
+            orig(self);
+
+            if (self.characterBody)
+            {
+                CharacterMaster master = self.characterBody.master;
+                if (master.masterIndex == MasterCatalog.FindMasterIndex("ToolbotMonsterMaster"))
+                {
+                    if (!powerModeUsers.Contains(master))
+                    {
+                        powerModeUsers.Add(master);
+
+                        AISkillDriver[] skillDrivers = master.GetComponents<AISkillDriver>();
+                        foreach (AISkillDriver skillDriver in skillDrivers)
+                        {
+                            if (skillDriver.skillSlot == SkillSlot.Utility && skillDriver.skillSlot == SkillSlot.Secondary)
+                            {
+                                skillDriver.enabled = false;  // Disable Utility & Secondary skill drivers from being selected while active
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ToolbotDualWield_OnExit(On.EntityStates.Toolbot.ToolbotDualWield.orig_OnExit orig, EntityStates.Toolbot.ToolbotDualWield self)
+        {
+            orig(self);
+
+            if (self.characterBody)
+            {
+                CharacterMaster master = self.characterBody.master;
+                if (powerModeUsers.Contains(master))
+                {
+                    powerModeUsers.Remove(master);
+
+                    AISkillDriver[] skillDrivers = master.GetComponents<AISkillDriver>();
+                    foreach (AISkillDriver skillDriver in skillDrivers)
+                    {
+                        if (skillDriver.skillSlot == SkillSlot.Utility && skillDriver.skillSlot == SkillSlot.Secondary)
+                        {
+                            skillDriver.enabled = true;  // Re-enable the disabled skill drivers
+                        };
+                    }
+                }
+            }
+        }
+
+        // Hold down both Primary & Secondary while Power Mode is active
+        private void PowerModeInputs(On.RoR2.CharacterAI.BaseAI.orig_UpdateBodyInputs orig, BaseAI self)
+        {
+            orig(self);
+
+            foreach (CharacterMaster powerModeUser in powerModeUsers)
+            {
+                BaseAI ai = powerModeUser.GetComponent<BaseAI>();
+                if (ai && ai.bodyInputBank)
+                {
+                    ai.bodyInputBank.skill1.PushState(true);
+                    ai.bodyInputBank.skill2.PushState(true);
+                }
+            }
+        }
+
+        // Special cases for special loadouts
+        private void SpecialLoadoutBehavior(CharacterBody body)
+        {
+            if (body.master && body.bodyIndex == BodyCatalog.FindBodyIndex("ToolbotBody") && !body.isPlayerControlled)
+            {
+                Loadout.BodyLoadoutManager skillLoadout = body.master.loadout.bodyLoadoutManager;
+                AISkillDriver[] skillDrivers = body.master.GetComponents<AISkillDriver>();
+
+                if (skillLoadout == null)
+                {
+                    return;
+                }
+
+                uint primary = skillLoadout.GetSkillVariant(body.bodyIndex, 0);
+                uint misc = skillLoadout.GetSkillVariant(body.bodyIndex, 1);
+                uint secondary = skillLoadout.GetSkillVariant(body.bodyIndex, 2);
+                uint utility = skillLoadout.GetSkillVariant(body.bodyIndex, 3);
+                uint special = skillLoadout.GetSkillVariant(body.bodyIndex, 4);
+
+                // Adjust Power Mode distances
+                if (special == 1)
+                {
+                    float activationDistance;
+
+                    switch (misc)
+                    {
+                        case 1: // Rebar in the off-hand
+                            activationDistance = 300f;
+                            break;
+
+                        case 2: // Scrap Launcher in the off-hand
+                            activationDistance = 150f;
+                            break;
+
+                        case 0: // Nailgun in the off-hand
+                            activationDistance = 60f;
+                            break;
+
+                        case 3: // Saw in the off-hand
+                            activationDistance = 10f;
+                            break;
+
+                        default:
+                            activationDistance = 60f;
+                            break;
+                    }
+
+                    foreach (AISkillDriver skillDriver in skillDrivers)
+                    {
+                        if (skillDriver.requiredSkill == powerModeOnSkill)
+                        {
+                            skillDriver.maxDistance = activationDistance;
+                        };
+                    }
+                }
+
+                // Double Rebar + Retool loadout
+                if (primary == 1 && misc == 1 && special == 0)
+                {
+                    AISkillDriver retoolBehavior = null;
+                    foreach (AISkillDriver skillDriver in skillDrivers)
+                    {
+                        if (skillDriver.requiredSkill == retoolSkill)
+                        {
+                            retoolBehavior = skillDriver;
+                        };
+                    }
+
+                    if (retoolBehavior != null)
+                    {
+                        retoolBehavior.movementType = AISkillDriver.MovementType.StrafeMovetarget;
+                        retoolBehavior.shouldSprint = false;
+
+                        foreach (AISkillDriver skillDriver in skillDrivers)
+                        {
+                            if (skillDriver.requiredSkill == rebarSkill)
+                            {
+                                skillDriver.nextHighPriorityOverride = retoolBehavior; // Retool after every Rebar
+                                skillDriver.activationRequiresAimConfirmation = false;
+                                skillDriver.driverUpdateTimerOverride = -1f;
+                            };
+                        }
+                    } 
+                }
+            }
         }
     }
 }

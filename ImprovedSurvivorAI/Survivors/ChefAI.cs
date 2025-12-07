@@ -15,6 +15,7 @@ namespace ImprovedSurvivorAI
         public static SkillDef boostedSearSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/DLC2/Chef/ChefSearBoosted.asset").WaitForCompletion();
         public static SkillDef iceBoxSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/DLC2/Chef/ChefIceBox.asset").WaitForCompletion();
         public static SkillDef boostedIceBoxSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/DLC2/Chef/ChefIceBoxBoosted.asset").WaitForCompletion();
+        public static SkillDef rollSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/DLC2/Chef/ChefRolyPoly.asset").WaitForCompletion();
         public static ChefOilSpillSkillDef oilSpillSkill = Addressables.LoadAssetAsync<ChefOilSpillSkillDef>("RoR2/DLC2/Chef/ChefOilSpill.asset").WaitForCompletion();
         public static SkillDef glazeSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/DLC2/Chef/ChefGlaze.asset").WaitForCompletion();
         public static SkillDef yesChefSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/DLC2/Chef/YesChef.asset").WaitForCompletion();
@@ -32,8 +33,12 @@ namespace ImprovedSurvivorAI
             }
 
 
+            // Misc
+            On.EntityStates.Chef.YesChef.CheckForYesChefEarlyExit += FixYesChef;
+            
+
             // Boosted Dice if point blank
-            /*AISkillDriver boostedDice = masterObject.AddComponent<AISkillDriver>();
+            AISkillDriver boostedDice = masterObject.AddComponent<AISkillDriver>();
             boostedDice.skillSlot = SkillSlot.Primary;
             boostedDice.requiredSkill = boostedDiceSkill;
             boostedDice.requireSkillReady = true;
@@ -50,11 +55,11 @@ namespace ImprovedSurvivorAI
             boostedDice.noRepeat = false;
             boostedDice.shouldSprint = false;
             boostedDice.shouldFireEquipment = false;
-            boostedDice.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;*/
+            boostedDice.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
 
 
             // Boosted Sear if farther
-            /*AISkillDriver boostedSear = masterObject.AddComponent<AISkillDriver>();
+            AISkillDriver boostedSear = masterObject.AddComponent<AISkillDriver>();
             boostedSear.skillSlot = SkillSlot.Secondary;
             boostedSear.requiredSkill = boostedSearSkill;
             boostedSear.requireSkillReady = true;
@@ -71,11 +76,11 @@ namespace ImprovedSurvivorAI
             boostedSear.noRepeat = false;
             boostedSear.shouldSprint = true;
             boostedSear.shouldFireEquipment = false;
-            boostedSear.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;*/
+            boostedSear.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
 
 
             // Boosted Ice Box if farther
-            /*AISkillDriver boostedIceBox = masterObject.AddComponent<AISkillDriver>();
+            AISkillDriver boostedIceBox = masterObject.AddComponent<AISkillDriver>();
             boostedIceBox.skillSlot = SkillSlot.Secondary;
             boostedIceBox.requiredSkill = boostedIceBoxSkill;
             boostedIceBox.requireSkillReady = true;
@@ -92,7 +97,7 @@ namespace ImprovedSurvivorAI
             boostedIceBox.noRepeat = false;
             boostedIceBox.shouldSprint = false;
             boostedIceBox.shouldFireEquipment = false;
-            boostedIceBox.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;*/
+            boostedIceBox.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
 
 
             // Glaze off cooldown
@@ -113,11 +118,12 @@ namespace ImprovedSurvivorAI
             glaze.noRepeat = true;
             glaze.shouldSprint = true;
             glaze.shouldFireEquipment = false;
-            glaze.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
+            glaze.buttonPressType = AISkillDriver.ButtonPressType.Hold;
+            glaze.driverUpdateTimerOverride = .8f;
 
 
             // Yes CHEF off cooldown
-            /*AISkillDriver yesChef = masterObject.AddComponent<AISkillDriver>();
+            AISkillDriver yesChef = masterObject.AddComponent<AISkillDriver>();
             yesChef.skillSlot = SkillSlot.Special;
             yesChef.requiredSkill = yesChefSkill;
             yesChef.requireSkillReady = true;
@@ -135,7 +141,7 @@ namespace ImprovedSurvivorAI
             yesChef.shouldSprint = true;
             yesChef.shouldFireEquipment = false;
             yesChef.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
-            yesChef.driverUpdateTimerOverride = 1f;*/
+            yesChef.driverUpdateTimerOverride = 1f;
 
 
             // Mash Oil Spill to keep it going
@@ -158,6 +164,27 @@ namespace ImprovedSurvivorAI
             oilSpill.shouldFireEquipment = false;
             oilSpill.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
             oilSpill.selectionRequiresOnGround = true;
+
+
+            // Uncharged roll to close in
+            /*AISkillDriver rollClose = masterObject.AddComponent<AISkillDriver>();
+            rollClose.skillSlot = SkillSlot.Utility;
+            rollClose.requiredSkill = rollSkill;
+            rollClose.requireSkillReady = true;
+            rollClose.requireEquipmentReady = false;
+            rollClose.moveTargetType = AISkillDriver.TargetType.CurrentEnemy;
+            rollClose.minDistance = 0f;
+            rollClose.maxDistance = 50f;
+            rollClose.selectionRequiresTargetLoS = true;
+            rollClose.activationRequiresTargetLoS = true;
+            rollClose.activationRequiresAimConfirmation = false;
+            rollClose.movementType = AISkillDriver.MovementType.ChaseMoveTarget;
+            rollClose.aimType = AISkillDriver.AimType.AtCurrentEnemy;
+            rollClose.ignoreNodeGraph = true;
+            rollClose.noRepeat = true;
+            rollClose.shouldSprint = true;
+            rollClose.shouldFireEquipment = false;
+            rollClose.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;*/
 
 
             // Sear if close
@@ -231,7 +258,7 @@ namespace ImprovedSurvivorAI
             primaryStrafe.requireEquipmentReady = false;
             primaryStrafe.moveTargetType = AISkillDriver.TargetType.CurrentEnemy;
             primaryStrafe.minDistance = 0f;
-            primaryStrafe.maxDistance = 30f;
+            primaryStrafe.maxDistance = 40f;
             primaryStrafe.selectionRequiresTargetLoS = true;
             primaryStrafe.activationRequiresTargetLoS = true;
             primaryStrafe.activationRequiresAimConfirmation = true;
@@ -370,6 +397,17 @@ namespace ImprovedSurvivorAI
             sprintChaseLowPriority.shouldFireEquipment = false;
             sprintChaseLowPriority.buttonPressType = AISkillDriver.ButtonPressType.Abstain;
             sprintChaseLowPriority.resetCurrentEnemyOnNextDriverSelection = true;
+        }
+
+        private bool FixYesChef(On.EntityStates.Chef.YesChef.orig_CheckForYesChefEarlyExit orig, EntityStates.Chef.YesChef self)
+        {
+            CharacterBody chefBody = self.characterBody;
+            if (chefBody && !chefBody.isPlayerControlled)
+            {
+                return false;
+            }
+
+            return orig(self);
         }
     }
 }

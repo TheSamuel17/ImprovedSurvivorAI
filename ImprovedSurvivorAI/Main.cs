@@ -8,12 +8,12 @@ using System.Collections.Generic;
 namespace ImprovedSurvivorAI
 {
     // Metadata
-    [BepInPlugin("Samuel17.ImprovedSurvivorAI", "ImprovedSurvivorAI", "1.3.3")]
+    [BepInPlugin("Samuel17.ImprovedSurvivorAI", "ImprovedSurvivorAI", "1.4.0")]
 
     public class Main : BaseUnityPlugin
     {
-        List<GameObject> survivorMasterPrefabs = new List<GameObject>();
-        List<CharacterMaster> activeSurvivorMasters = new List<CharacterMaster>();
+        public static List<GameObject> survivorMasterPrefabs = new();
+        public static List<CharacterMaster> activeSurvivorMasters = new();
 
         // Config fields
         public static bool enableCaptainBeacons = true;
