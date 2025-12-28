@@ -12,22 +12,25 @@ Oh, and watch out for the Artifact of Vengeance.
 
 ## Mod Compatibility & Recommendations
 
-This mod is best served with [AlliesAvoidImplosions](https://thunderstore.io/package/Chinchi/AlliesAvoidImplosions). It can be configured to allow Survivors to flee from Void implosions as well, using the **Additional Retreat Entities** entry.
+This mod works with: [Enforcer, Nemesis Enforcer](https://thunderstore.io/package/EnforcerGang/Enforcer/), [Sonic](https://thunderstore.io/package/ds_gaming/SonicTheHedgehog/).
+
+This mod is also best served with [AlliesAvoidImplosions](https://thunderstore.io/package/Chinchi/AlliesAvoidImplosions). It can be configured to allow Survivors to flee from Void implosions as well, using the **Additional Retreat Entities** entry.
 
 <details>
 <summary>Just plug the following in:</summary>
 CommandoMonsterMaster, HuntressMonsterMaster, Bandit2MonsterMaster, ToolbotMonsterMaster, EngiMonsterMaster, MageMonsterMaster, MercMonsterMaster, TreebotMonsterMaster, LoaderMonsterMaster, CrocoMonsterMaster, CaptainMonsterMaster, RailgunnerMonsterMaster, VoidSurvivorMonsterMaster, SeekerMonsterMaster, FalseSonMonsterMaster, ChefMonsterMaster, DroneTechMonsterMaster, DrifterMonsterMaster, HereticMonsterMaster
 </details>
 
+<details>
+<summary>Modded survivor entries:</summary>
+EnforcerMonsterMaster, NemesisEnforcerMonsterMaster, SonicTheHedgehogMonsterMaster
+</details>
+
 ## To-do:
 
-* **General**
-    * A way to take into account the number of stocks available for a skill. This will allow for optimal usage of skills like Engineer's Thermal Harpoons.
-* **Specific**
-    * Make Artificer hover?
-    * Heretic's Ruin.
-    * CHEF's Roll.
-* Among other things. Stay tuned...
+* Make Artificer hover?
+* Re-implement Seeker's Sojourn into her behavior.
+* The floodgates have open! I can make *your* modded survivor smarter, starting today! *For free!* (No promises, though, some of them are *real* complex.)
 
 ## Credits
 

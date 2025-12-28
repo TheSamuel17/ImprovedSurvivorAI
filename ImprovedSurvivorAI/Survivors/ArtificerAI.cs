@@ -28,7 +28,7 @@ namespace ImprovedSurvivorAI
 
 
             // Misc
-            On.RoR2.CharacterAI.BaseAI.FixedUpdate += SnapfreezeTargeting;
+            CharacterMaster.onCharacterMasterDiscovered += CharacterMaster_onCharacterMasterDiscovered;
 
 
             // Use Ion Surge off cooldown (point-blank)
@@ -310,47 +310,66 @@ namespace ImprovedSurvivorAI
             utility.nextHighPriorityOverride = releaseUtility;
         }
 
-        private void SnapfreezeTargeting(On.RoR2.CharacterAI.BaseAI.orig_FixedUpdate orig, BaseAI self)
+        private void CharacterMaster_onCharacterMasterDiscovered(CharacterMaster master)
         {
-            orig(self);
-
-            if (self.master.masterIndex == MasterCatalog.FindMasterIndex("MageMonsterMaster"))
+            if (master.masterIndex == MasterCatalog.FindMasterIndex("MageMonsterMaster"))
             {
-                if (self.currentEnemy.gameObject && self.currentEnemy.characterBody)
+                var component = master.GetComponent<SnapfreezeTargeting>();
+                if (!component && master.gameObject)
                 {
-                    Vector3 wallPosition = Vector3.zero;
-                    bool hasTarget = false;
-
-                    if (self.HasLOS(self.currentEnemy.gameObject.transform.position))
-                    {
-                        Ray aimRay = new Ray(self.currentEnemy.gameObject.transform.position, Vector3.down);
-                        float rayLength = 8f + Mathf.Abs(self.currentEnemy.characterBody.transform.position.y - self.currentEnemy.characterBody.footPosition.y);
-                        if (Physics.Raycast(aimRay, out var hitInfo, rayLength, LayerIndex.world.mask))
-                        {
-                            if (self.HasLOS(hitInfo.point + Vector3.up * .05f))
-                            {
-                                hasTarget = true;
-                                wallPosition = hitInfo.point + Vector3.up * .05f;
-                            }
-                        }
-                    }     
-
-                    if (hasTarget)
-                    {
-                        self.customTarget._gameObject = self.currentEnemy.gameObject;
-                        self.customTarget.lastKnownBullseyePosition = wallPosition;
-                        self.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.now;
-                        self.customTarget.unset = false;
-                    }
-                    else
-                    {
-                        self.customTarget._gameObject = null;
-                        self.customTarget.lastKnownBullseyePosition = null;
-                        self.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.negativeInfinity;
-                        self.customTarget.unset = true;
-                    }
+                    component = master.gameObject.AddComponent<SnapfreezeTargeting>();
                 }
             }
+        }
+    }
+
+    public class SnapfreezeTargeting : MonoBehaviour
+    {
+        public static float updateInterval = .05f; // Seconds
+        public static float timer = 0f;
+
+        private void FixedUpdate()
+        {
+            timer += Time.fixedDeltaTime;
+            if (timer < updateInterval) return;
+            timer -= updateInterval;
+
+            BaseAI ai = gameObject.GetComponent<BaseAI>();
+            if (ai && ai.currentEnemy.gameObject && ai.currentEnemy.characterBody)
+            {
+                Vector3 wallPosition = Vector3.zero;
+                bool hasTarget = false;
+
+                if (ai.HasLOS(ai.currentEnemy.gameObject.transform.position))
+                {
+                    Ray aimRay = new Ray(ai.currentEnemy.gameObject.transform.position, Vector3.down);
+                    float rayLength = 8f + Mathf.Abs(ai.currentEnemy.characterBody.transform.position.y - ai.currentEnemy.characterBody.footPosition.y);
+                    if (Physics.Raycast(aimRay, out var hitInfo, rayLength, LayerIndex.world.mask))
+                    {
+                        if (ai.HasLOS(hitInfo.point + Vector3.up * .02f))
+                        {
+                            hasTarget = true;
+                            wallPosition = hitInfo.point + Vector3.up * .02f;
+                        }
+                    }
+                }
+
+                if (hasTarget)
+                {
+                    ai.customTarget._gameObject = ai.currentEnemy.gameObject;
+                    ai.customTarget.lastKnownBullseyePosition = wallPosition;
+                    ai.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.now;
+                    ai.customTarget.unset = false;
+                }
+                else
+                {
+                    ai.customTarget._gameObject = null;
+                    ai.customTarget.lastKnownBullseyePosition = null;
+                    ai.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.negativeInfinity;
+                    ai.customTarget.unset = true;
+                }
+            }
+
         }
     }
 }

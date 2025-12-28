@@ -1,6 +1,7 @@
 using BepInEx;
 using RoR2;
 using RoR2.CharacterAI;
+using RoR2.Skills;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
@@ -8,12 +9,13 @@ using System.Collections.Generic;
 namespace ImprovedSurvivorAI
 {
     // Metadata
-    [BepInPlugin("Samuel17.ImprovedSurvivorAI", "ImprovedSurvivorAI", "1.4.0")]
+    [BepInPlugin("Samuel17.ImprovedSurvivorAI", "ImprovedSurvivorAI", "1.5.0")]
 
     public class Main : BaseUnityPlugin
     {
         public static List<GameObject> survivorMasterPrefabs = new();
         public static List<CharacterMaster> activeSurvivorMasters = new();
+        public static SkillDef[] listSkillDefs;
 
         // Config fields
         public static bool enableCaptainBeacons = true;
@@ -48,108 +50,19 @@ namespace ImprovedSurvivorAI
             On.RoR2.CharacterMaster.SetUpGummyClone += GummyCloneTargeting;
 
             // Modify vanilla survivors
-            AdjustVanillaSurvivors();
+            InitSurvivors.AdjustVanillaSurvivors();
 
             // Modify Engineer mobile turrets
             AdjustWalkerTurrets();
-        }
 
-        private void AdjustVanillaSurvivors()
-        {
-            //  Commando  //
-            GameObject commandoMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Commando/CommandoMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(commandoMaster);
-            new CommandoAI(commandoMaster);
+            RoR2Application.onLoad += () =>
+            {
+                // SkillDef reference
+                listSkillDefs = SkillCatalog._allSkillDefs;
 
-            //  Huntress  //
-            GameObject huntressMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Huntress/HuntressMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(huntressMaster);
-            new HuntressAI(huntressMaster);
-
-            //  Bandit  //
-            GameObject banditMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Bandit2/Bandit2MonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(banditMaster);
-            new BanditAI(banditMaster);
-
-            //  MUL-T  //
-            GameObject multMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Toolbot/ToolbotMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(multMaster);
-            new MultAI(multMaster);
-
-            //  Engineer  //
-            GameObject engiMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Engi/EngiMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(engiMaster);
-            new EngineerAI(engiMaster);
-
-            //  Artificer  //
-            GameObject artiMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Mage/MageMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(artiMaster);
-            new ArtificerAI(artiMaster);
-
-            //  Mercenary  //
-            GameObject mercMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Merc/MercMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(mercMaster);
-            new MercenaryAI(mercMaster);
-
-            //  REX  //
-            GameObject rexMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Treebot/TreebotMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(rexMaster);
-            new RexAI(rexMaster);
-
-            //  Loader  //
-            GameObject loaderMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Loader/LoaderMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(loaderMaster);
-            new LoaderAI(loaderMaster);
-
-            //  Acrid  //
-            GameObject acridMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Croco/CrocoMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(acridMaster);
-            new AcridAI(acridMaster);
-
-            //  Captain  //
-            GameObject captainMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Captain/CaptainMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(captainMaster);
-            new CaptainAI(captainMaster, enableCaptainBeacons);
-
-            //  Railgunner  //
-            GameObject railgunnerMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/Railgunner/RailgunnerMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(railgunnerMaster);
-            new RailgunnerAI(railgunnerMaster);
-
-            //  Void Fiend  //
-            GameObject voidFiendMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidSurvivor/VoidSurvivorMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(voidFiendMaster);
-            new VoidFiendAI(voidFiendMaster);
-
-            //  Seeker  //
-            GameObject seekerMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC2/Seeker/SeekerMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(seekerMaster);
-            new SeekerAI(seekerMaster);
-
-            //  False Son  //
-            GameObject falseSonMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC2/FalseSon/FalseSonMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(falseSonMaster);
-            new FalseSonAI(falseSonMaster);
-
-            //  CHEF  //
-            GameObject chefMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC2/Chef/ChefMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(chefMaster);
-            new ChefAI(chefMaster);
-
-            //  Operator  //
-            GameObject operatorMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC3/Drone Tech/DroneTechMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(operatorMaster);
-            new OperatorAI(operatorMaster);
-
-            //  Drifter  //
-            GameObject drifterMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC3/Drifter/DrifterMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(drifterMaster);
-            new DrifterAI(drifterMaster);
-
-            //  Heretic  //
-            GameObject hereticMaster = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Heretic/HereticMonsterMaster.prefab").WaitForCompletion();
-            ClearSkillDrivers(hereticMaster);
-            new HereticAI(hereticMaster);
+                // Modify modded survivors
+                InitSurvivors.AdjustModdedSurvivors();
+            };
         }
 
         private void AdjustWalkerTurrets()
@@ -188,7 +101,7 @@ namespace ImprovedSurvivorAI
         }
 
         // Clear all existing skill dirvers
-        private void ClearSkillDrivers(GameObject survivorMaster)
+        public static void ClearSkillDrivers(GameObject survivorMaster)
         {
             AISkillDriver[] skillDrivers = survivorMaster.GetComponents<AISkillDriver>();
             foreach (AISkillDriver skillDriver in skillDrivers)

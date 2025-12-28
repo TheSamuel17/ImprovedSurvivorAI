@@ -29,7 +29,7 @@ namespace ImprovedSurvivorAI
 
 
             // Misc
-            On.RoR2.CharacterAI.BaseAI.FixedUpdate += ArrowRainTargeting;
+            CharacterMaster.onCharacterMasterDiscovered += CharacterMaster_onCharacterMasterDiscovered;
 
 
             // Fire Ballista shots
@@ -360,63 +360,82 @@ namespace ImprovedSurvivorAI
             fireBallista.nextHighPriorityOverride = airBlink;
         }
 
-        private void ArrowRainTargeting(On.RoR2.CharacterAI.BaseAI.orig_FixedUpdate orig, BaseAI self)
+        private void CharacterMaster_onCharacterMasterDiscovered(CharacterMaster master)
         {
-            orig(self);
-
-            if (self.master.masterIndex == MasterCatalog.FindMasterIndex("HuntressMonsterMaster"))
+            if (master.masterIndex == MasterCatalog.FindMasterIndex("HuntressMonsterMaster"))
             {
-                if (self.currentEnemy.gameObject && self.currentEnemy.characterBody)
+                var component = master.GetComponent<ArrowRainTargeting>();
+                if (!component && master.gameObject)
                 {
-                    Vector3 wallPosition = Vector3.zero;
-                    bool hasTarget = false;
-
-                    Vector3 originPos = self.gameObject.transform.position;
-                    Vector3 targetPos = self.currentEnemy.gameObject.transform.position;
-
-                    Ray aimRay = new Ray(targetPos, Vector3.down);
-                    float rayLength = 20f + Mathf.Abs(self.currentEnemy.characterBody.transform.position.y - self.currentEnemy.characterBody.footPosition.y);
-                    if (Physics.Raycast(aimRay, out var hitInfo, rayLength, LayerIndex.world.mask))
-                    {
-                        if (self.HasLOS(hitInfo.point + Vector3.up * .01f))
-                        {
-                            hasTarget = true;
-                            wallPosition = hitInfo.point + Vector3.up * .01f;
-                        }
-                    }
-
-                    // If the "place under target" thing doesn't work out, just check if it's against a sufficiently close surface
-                    if (!hasTarget)
-                    {
-                        Vector3 direction = (targetPos - originPos).normalized;
-                        aimRay = new Ray(originPos, direction);
-                        rayLength = 20f + (originPos - targetPos).magnitude;
-                        if (Physics.Raycast(aimRay, out var hitInfo2, rayLength, LayerIndex.world.mask))
-                        {
-                            if (self.HasLOS(hitInfo2.point + direction * -.01f))
-                            {
-                                hasTarget = true;
-                                wallPosition = hitInfo2.point + direction * -.01f;
-                            }
-                        }
-                    }
-
-                    if (hasTarget)
-                    {
-                        self.customTarget._gameObject = self.currentEnemy.gameObject;
-                        self.customTarget.lastKnownBullseyePosition = wallPosition;
-                        self.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.now;
-                        self.customTarget.unset = false;
-                    }
-                    else
-                    {
-                        self.customTarget._gameObject = null;
-                        self.customTarget.lastKnownBullseyePosition = null;
-                        self.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.negativeInfinity;
-                        self.customTarget.unset = true;
-                    }
+                    component = master.gameObject.AddComponent<ArrowRainTargeting>();
                 }
             }
+        }
+    }
+
+    public class ArrowRainTargeting : MonoBehaviour
+    {
+        public static float updateInterval = .05f; // Seconds
+        public static float timer = 0f;
+
+        private void FixedUpdate()
+        {
+            timer += Time.fixedDeltaTime;
+            if (timer < updateInterval) return;
+            timer -= updateInterval;
+
+            BaseAI ai = gameObject.GetComponent<BaseAI>();
+            if (ai && ai.currentEnemy.gameObject && ai.currentEnemy.characterBody)
+            {
+                Vector3 wallPosition = Vector3.zero;
+                bool hasTarget = false;
+
+                Vector3 originPos = ai.gameObject.transform.position;
+                Vector3 targetPos = ai.currentEnemy.gameObject.transform.position;
+
+                Ray aimRay = new Ray(targetPos, Vector3.down);
+                float rayLength = 20f + Mathf.Abs(ai.currentEnemy.characterBody.transform.position.y - ai.currentEnemy.characterBody.footPosition.y);
+                if (Physics.Raycast(aimRay, out var hitInfo, rayLength, LayerIndex.world.mask))
+                {
+                    if (ai.HasLOS(hitInfo.point + Vector3.up * .02f))
+                    {
+                        hasTarget = true;
+                        wallPosition = hitInfo.point + Vector3.up * .02f;
+                    }
+                }
+
+                // If the "place under target" thing doesn't work out, just check if it's against a sufficiently close surface
+                if (!hasTarget)
+                {
+                    Vector3 direction = (targetPos - originPos).normalized;
+                    aimRay = new Ray(originPos, direction);
+                    rayLength = 20f + (originPos - targetPos).magnitude;
+                    if (Physics.Raycast(aimRay, out var hitInfo2, rayLength, LayerIndex.world.mask))
+                    {
+                        if (ai.HasLOS(hitInfo2.point + direction * -.02f))
+                        {
+                            hasTarget = true;
+                            wallPosition = hitInfo2.point + direction * -.02f;
+                        }
+                    }
+                }
+
+                if (hasTarget)
+                {
+                    ai.customTarget._gameObject = ai.currentEnemy.gameObject;
+                    ai.customTarget.lastKnownBullseyePosition = wallPosition;
+                    ai.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.now;
+                    ai.customTarget.unset = false;
+                }
+                else
+                {
+                    ai.customTarget._gameObject = null;
+                    ai.customTarget.lastKnownBullseyePosition = null;
+                    ai.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.negativeInfinity;
+                    ai.customTarget.unset = true;
+                }
+            }
+
         }
     }
 }

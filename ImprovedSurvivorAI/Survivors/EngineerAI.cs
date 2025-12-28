@@ -30,6 +30,10 @@ namespace ImprovedSurvivorAI
             }
 
 
+            // Misc
+            CharacterMaster.onCharacterMasterDiscovered += CharacterMaster_onCharacterMasterDiscovered;
+
+
             // Paint targets with Thermal Harpoons
             AISkillDriver targetHarpoons = masterObject.AddComponent<AISkillDriver>();
             targetHarpoons.skillSlot = SkillSlot.Primary;
@@ -375,6 +379,66 @@ namespace ImprovedSurvivorAI
             walkerTurret.nextHighPriorityOverride = placeTurret;
             targetHarpoons.nextHighPriorityOverride = releasePrimary;
             primary.nextHighPriorityOverride = releasePrimary;
+        }
+
+        private void CharacterMaster_onCharacterMasterDiscovered(CharacterMaster master)
+        {
+            if (master.masterIndex == MasterCatalog.FindMasterIndex("EngiMonsterMaster"))
+            {
+                var component = master.GetComponent<EngiHarpoonsController>();
+                if (!component && master.gameObject)
+                {
+                    component = master.gameObject.AddComponent<EngiHarpoonsController>();
+                }
+            }
+        }
+    }
+
+    public class EngiHarpoonsController : MonoBehaviour
+    {
+        public static float updateInterval = .5f; // Seconds
+        public static float timer = 0f;
+
+        public static SkillDef harpoonSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/Base/Engi/EngiHarpoons.asset").WaitForCompletion();
+        public static AISkillDriver harpoonSkillDriver;
+
+        private void Start()
+        {
+            AISkillDriver[] skillDrivers = gameObject.GetComponents<AISkillDriver>();
+            foreach (AISkillDriver skillDriver in skillDrivers)
+            {
+                if (skillDriver.requiredSkill == harpoonSkill)
+                {
+                    harpoonSkillDriver = skillDriver;
+                    break;
+                };
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            timer += Time.fixedDeltaTime;
+            if (timer < updateInterval) return;
+            timer -= updateInterval;
+
+            if (harpoonSkillDriver)
+            {
+                BaseAI ai = gameObject.GetComponent<BaseAI>();
+                if (ai && ai.body)
+                {
+                    if (ai.body.skillLocator && ai.body.skillLocator.utility && ai.body.skillLocator.utility.skillDef == harpoonSkill)
+                    {
+                        if (ai.body.skillLocator.utility.stock >= ai.body.skillLocator.utility.maxStock)
+                        {
+                            harpoonSkillDriver.enabled = true; // Enable at max stocks
+                        }
+                        else
+                        {
+                            harpoonSkillDriver.enabled = false; // Disable below max stocks
+                        }
+                    }
+                }
+            }
         }
     }
 }

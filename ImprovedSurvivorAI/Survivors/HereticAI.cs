@@ -1,6 +1,7 @@
 ﻿using RoR2;
 using RoR2.CharacterAI;
 using RoR2.Skills;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -14,6 +15,9 @@ namespace ImprovedSurvivorAI
         public static SkillDef shadowfadeSkill = Addressables.LoadAssetAsync<SkillDef>("RoR2/Base/LunarSkillReplacements/LunarUtilityReplacement.asset").WaitForCompletion();
         public static LunarDetonatorSkill ruinSkill = Addressables.LoadAssetAsync<LunarDetonatorSkill>("RoR2/Base/LunarSkillReplacements/LunarDetonatorSpecialReplacement.asset").WaitForCompletion();
 
+        // Fields
+        public static List<CharacterMaster> hereticMasterList = new();
+
         public HereticAI(GameObject masterObject)
         {
             // Better targeting
@@ -25,6 +29,32 @@ namespace ImprovedSurvivorAI
                 baseAI.aimVectorDampTime = .05f;
                 baseAI.aimVectorMaxSpeed = 720;
             }
+
+
+            // Misc
+            On.RoR2.LunarDetonatorPassiveAttachment.DamageListener.OnDamageDealtServer += FixRuin;
+            CharacterMaster.onCharacterMasterDiscovered += CharacterMaster_onCharacterMasterDiscovered;
+
+
+            // Use Ruin whenever pertinent, handled by custom targeting
+            AISkillDriver ruin = masterObject.AddComponent<AISkillDriver>();
+            ruin.skillSlot = SkillSlot.Special;
+            ruin.requiredSkill = ruinSkill;
+            ruin.requireSkillReady = true;
+            ruin.requireEquipmentReady = false;
+            ruin.moveTargetType = AISkillDriver.TargetType.Custom;
+            ruin.minDistance = 0f;
+            ruin.maxDistance = float.PositiveInfinity;
+            ruin.selectionRequiresTargetLoS = false;
+            ruin.activationRequiresTargetLoS = false;
+            ruin.activationRequiresAimConfirmation = false;
+            //ruin.movementType = AISkillDriver.MovementType.ChaseMoveTarget;
+            ruin.aimType = AISkillDriver.AimType.AtMoveTarget;
+            ruin.ignoreNodeGraph = false;
+            ruin.noRepeat = true;
+            ruin.shouldSprint = false;
+            ruin.shouldFireEquipment = false;
+            ruin.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
 
 
             // Shadowfade off cooldown
@@ -221,29 +251,6 @@ namespace ImprovedSurvivorAI
             primaryChase.buttonPressType = AISkillDriver.ButtonPressType.Hold;
 
 
-            // Use Ruin against sufficiently injured targets (hopefully with enough stacks of Ruin)
-            AISkillDriver ruin = masterObject.AddComponent<AISkillDriver>();
-            ruin.skillSlot = SkillSlot.Special;
-            ruin.requiredSkill = ruinSkill;
-            ruin.requireSkillReady = true;
-            ruin.requireEquipmentReady = false;
-            ruin.moveTargetType = AISkillDriver.TargetType.CurrentEnemy;
-            ruin.minDistance = 0f;
-            ruin.maxDistance = float.PositiveInfinity;
-            ruin.selectionRequiresTargetLoS = false;
-            ruin.activationRequiresTargetLoS = false;
-            ruin.activationRequiresAimConfirmation = false;
-            //ruin.movementType = AISkillDriver.MovementType.ChaseMoveTarget;
-            ruin.aimType = AISkillDriver.AimType.AtCurrentEnemy;
-            ruin.ignoreNodeGraph = false;
-            ruin.noRepeat = true;
-            ruin.shouldSprint = false;
-            ruin.shouldFireEquipment = false;
-            ruin.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
-            ruin.maxTargetHealthFraction = .5f;
-            ruin.minTargetHealthFraction = .01f;
-
-
             // Sprint towards the target
             AISkillDriver sprintChase = masterObject.AddComponent<AISkillDriver>();
             sprintChase.skillSlot = SkillSlot.None;
@@ -376,6 +383,87 @@ namespace ImprovedSurvivorAI
             maelstromMedium.nextHighPriorityOverride = releaseInput;
             maelstromFar.nextHighPriorityOverride = releaseInput;
             maelstromFarther.nextHighPriorityOverride = releaseInput;
+        }
+
+        // Enable Ruin to work for non-players
+        private void FixRuin(On.RoR2.LunarDetonatorPassiveAttachment.DamageListener.orig_OnDamageDealtServer orig, LunarDetonatorPassiveAttachment.DamageListener self, DamageReport damageReport)
+        {
+            if (damageReport.attackerBody && !damageReport.attackerBody.isPlayerControlled)
+            {
+                if (damageReport.attackerBody.skillLocator && damageReport.attackerBody.skillLocator.special && damageReport.attackerBody.skillLocator.special.skillDef == ruinSkill && damageReport.attackerBody.skillLocator.special.stock > 0)
+                {
+                    self.passiveController.skillAvailable = true;
+                }
+                else
+                {
+                    self.passiveController.skillAvailable = false;
+                }
+            }
+            
+            orig(self, damageReport);
+        }
+
+        private void CharacterMaster_onCharacterMasterDiscovered(CharacterMaster master)
+        {
+            if (master.masterIndex == MasterCatalog.FindMasterIndex("HereticMonsterMaster"))
+            {
+                var component = master.GetComponent<RuinTargeting>();
+                if (!component && master.gameObject)
+                {
+                    component = master.gameObject.AddComponent<RuinTargeting>();
+                }
+            }
+        }
+    }
+
+    public class RuinTargeting : MonoBehaviour
+    {
+        public static float updateInterval = 1f; // Seconds
+        public static float timer = 0f;
+        public static bool useRuin = false;
+
+        private void FixedUpdate()
+        {
+            timer += Time.fixedDeltaTime;
+            if (timer < updateInterval) return;
+            timer -= updateInterval;
+
+            useRuin = false;
+
+            BaseAI ai = gameObject.GetComponent<BaseAI>();
+            if (ai && ai.body)
+            {
+                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+                {
+                    if (body.gameObject && body.teamComponent.teamIndex != ai.body.teamComponent.teamIndex)
+                    {
+                        if (body.HasBuff(RoR2Content.Buffs.LunarDetonationCharge))
+                        {
+                            int ruinCount = body.GetBuffCount(RoR2Content.Buffs.LunarDetonationCharge);
+                            float projectedDamage = (3f + (1.2f * ruinCount)) * ai.body.damage;
+                            if (ruinCount >= 12 && body.healthComponent.combinedHealth <= projectedDamage)
+                            {
+                                useRuin = true;
+
+                                ai.customTarget._gameObject = body.gameObject;
+                                ai.customTarget.lastKnownBullseyePosition = body.gameObject.transform.position;
+                                ai.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.now;
+                                ai.customTarget.unset = false;
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (useRuin == false)
+            {
+                ai.customTarget._gameObject = null;
+                ai.customTarget.lastKnownBullseyePosition = null;
+                ai.customTarget.lastKnownBullseyePositionTime = Run.FixedTimeStamp.negativeInfinity;
+                ai.customTarget.unset = true;
+            }
         }
     }
 }

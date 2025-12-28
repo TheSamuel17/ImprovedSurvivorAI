@@ -1,3 +1,13 @@
+## 1.5.0
+
+- **General**
+    - Implemented mod compatibility for Enforcer & Sonic.
+    - Made the custom targeting for Huntress/Artificer/Seeker a little more performant. Maybe.
+- **Engineer** - Thermal Harpoons will only be selected at max stocks.
+- **Seeker** - Maximum target height for Unseen Hand reduced (100m -> 80m) so it can actually hit the target.
+- **CHEF** - Can now use Roll! Always uncharged, though. Haven't figured out how to make it hold input.
+- **Heretic** - Can now use Ruin!
+
 ## 1.4.0
 
 - **General** - The GitHub's up.
