@@ -1,3 +1,7 @@
+## 1.5.2
+
+- Nevermind, CHEF can no longer use Roll until I fix the below issue properly.
+
 ## 1.5.1
 
 - Fixed CHEF Roll hook causing player-controlled CHEF to sometimes release charge early.

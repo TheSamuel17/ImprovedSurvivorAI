@@ -38,7 +38,8 @@ namespace ImprovedSurvivorAI
 
             // Misc
             On.EntityStates.Chef.YesChef.CheckForYesChefEarlyExit += FixYesChef;
-            IL.EntityStates.Chef.RolyPoly.ChargeRolyAuthorityFixedUpdate += (il) =>
+            
+            /*IL.EntityStates.Chef.RolyPoly.ChargeRolyAuthorityFixedUpdate += (il) =>
             {
                 ILCursor c = new(il);
                 bool hookFailed = true;
@@ -56,12 +57,7 @@ namespace ImprovedSurvivorAI
                         c.Index += 1;
 
                         c.Emit(OpCodes.Ldarg_0); // self
-                        c.EmitDelegate<Action<EntityStates.Chef.RolyPoly>>((self) => {
-                            if (self.characterBody && !self.characterBody.isPlayerControlled)
-                            {
-                                self.chefController._rolyPolyStarted = true;
-                            }
-                        });
+                        c.EmitDelegate<Action<EntityStates.Chef.RolyPoly>>((self) => { self.chefController._rolyPolyStarted = true; });
                         //c.Emit(OpCodes.Ldarg_0);
                         //c.EmitDelegate<Action<EntityStates.Chef.RolyPoly>>((self) => { self.chefController._rolyPolyGearCharge = (int)self.gearCharge; });
 
@@ -73,7 +69,7 @@ namespace ImprovedSurvivorAI
                 {
                     Log.Error("CHEF Roll hook failed!");
                 }
-            };
+            };*/
             
 
             // Boosted Dice if point blank
@@ -140,7 +136,7 @@ namespace ImprovedSurvivorAI
 
 
             // Uncharged roll to close in
-            AISkillDriver rollClose = masterObject.AddComponent<AISkillDriver>();
+            /*AISkillDriver rollClose = masterObject.AddComponent<AISkillDriver>();
             rollClose.skillSlot = SkillSlot.Utility;
             rollClose.requiredSkill = rollSkill;
             rollClose.requireSkillReady = true;
@@ -158,7 +154,7 @@ namespace ImprovedSurvivorAI
             rollClose.shouldSprint = true;
             rollClose.shouldFireEquipment = false;
             rollClose.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
-            rollClose.selectionRequiresOnGround = true;
+            rollClose.selectionRequiresOnGround = true;*/
 
 
             // Glaze off cooldown
@@ -270,7 +266,7 @@ namespace ImprovedSurvivorAI
 
 
             // Charged roll to close in
-            AISkillDriver rollFar = masterObject.AddComponent<AISkillDriver>();
+            /*AISkillDriver rollFar = masterObject.AddComponent<AISkillDriver>();
             rollFar.skillSlot = SkillSlot.Utility;
             rollFar.requiredSkill = rollSkill;
             rollFar.requireSkillReady = true;
@@ -289,7 +285,7 @@ namespace ImprovedSurvivorAI
             rollFar.shouldFireEquipment = false;
             rollFar.buttonPressType = AISkillDriver.ButtonPressType.Hold;
             rollFar.driverUpdateTimerOverride = 1.5f;
-            rollFar.selectionRequiresTargetNonFlier = true;
+            rollFar.selectionRequiresTargetNonFlier = true;*/
 
 
             // Shoot primary while retreating (point-blank)
@@ -400,7 +396,7 @@ namespace ImprovedSurvivorAI
 
 
             // Use Roll off cooldown to follow the owner
-            AISkillDriver rollToOwner = masterObject.AddComponent<AISkillDriver>();
+            /*AISkillDriver rollToOwner = masterObject.AddComponent<AISkillDriver>();
             rollToOwner.skillSlot = SkillSlot.Utility;
             rollToOwner.requiredSkill = rollSkill;
             rollToOwner.requireSkillReady = true;
@@ -419,7 +415,7 @@ namespace ImprovedSurvivorAI
             rollToOwner.shouldFireEquipment = false;
             rollToOwner.buttonPressType = AISkillDriver.ButtonPressType.TapContinuous;
             rollToOwner.resetCurrentEnemyOnNextDriverSelection = true;
-            rollToOwner.selectionRequiresOnGround = true;
+            rollToOwner.selectionRequiresOnGround = true;*/
 
 
             // Sprint towards the owner

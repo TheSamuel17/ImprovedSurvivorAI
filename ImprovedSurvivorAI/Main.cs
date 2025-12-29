@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace ImprovedSurvivorAI
 {
     // Metadata
-    [BepInPlugin("Samuel17.ImprovedSurvivorAI", "ImprovedSurvivorAI", "1.5.1")]
+    [BepInPlugin("Samuel17.ImprovedSurvivorAI", "ImprovedSurvivorAI", "1.5.2")]
 
     public class Main : BaseUnityPlugin
     {
