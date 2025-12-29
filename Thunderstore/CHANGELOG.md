@@ -1,3 +1,7 @@
+## 1.5.1
+
+- Fixed CHEF Roll hook causing player-controlled CHEF to sometimes release charge early.
+
 ## 1.5.0
 
 - **General**

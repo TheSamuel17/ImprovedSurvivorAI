@@ -56,7 +56,12 @@ namespace ImprovedSurvivorAI
                         c.Index += 1;
 
                         c.Emit(OpCodes.Ldarg_0); // self
-                        c.EmitDelegate<Action<EntityStates.Chef.RolyPoly>>((self) => { self.chefController._rolyPolyStarted = true; });
+                        c.EmitDelegate<Action<EntityStates.Chef.RolyPoly>>((self) => {
+                            if (self.characterBody && !self.characterBody.isPlayerControlled)
+                            {
+                                self.chefController._rolyPolyStarted = true;
+                            }
+                        });
                         //c.Emit(OpCodes.Ldarg_0);
                         //c.EmitDelegate<Action<EntityStates.Chef.RolyPoly>>((self) => { self.chefController._rolyPolyGearCharge = (int)self.gearCharge; });
 
