@@ -1,3 +1,8 @@
+## 1.5.3
+
+- OH MY GOD BRUH.
+    - Turns out my fix *was* working fine, I just forgot to take out a line that I had copy-pasted elsewhere for testing purposes. CHEF can now Roll again.
+
 ## 1.5.2
 
 - Nevermind, CHEF can no longer use Roll until I fix the below issue properly.

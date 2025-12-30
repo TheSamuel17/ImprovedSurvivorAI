@@ -1,6 +1,6 @@
 ﻿{
 	"name": "ImprovedSurvivorAI",
-	"version_number": "1.5.2",
+	"version_number": "1.5.3",
 	"website_url": "https://github.com/TheSamuel17/ImprovedSurvivorAI",
 	"description": "Overhauls the behavior of AI-controlled Survivors to make them more competent. Goobo Jr. users rejoice!",
 	"dependencies": [

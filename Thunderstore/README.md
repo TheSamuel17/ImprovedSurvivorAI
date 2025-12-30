@@ -29,7 +29,6 @@ EnforcerMonsterMaster, NemesisEnforcerMonsterMaster, SonicTheHedgehogMonsterMast
 ## To-do:
 
 * Make Artificer hover?
-* CHEF's Roll.
 * Re-implement Seeker's Sojourn into her behavior.
 * The floodgates have open! I can make *your* modded survivor smarter, starting today! *For free!* (No promises, though, some of them are *real* complex.)
 
